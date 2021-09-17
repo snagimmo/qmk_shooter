@@ -1,0 +1,212 @@
+diff --git a/keyboards/claw44/keymaps/shooter/config.h b/keyboards/claw44/keymaps/shooter/config.h
+index 5379ce677d..369719ef17 100644
+--- a/keyboards/claw44/keymaps/shooter/config.h
++++ b/keyboards/claw44/keymaps/shooter/config.h
+@@ -19,4 +19,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ #pragma once
+
+ #define MASTER_LEFT
+-#define OLED_FONT_H "keyboards/claw44/lib/glcdfont.c"
++// #define OLED_FONT_H "keyboards/claw44/lib/glcdfont.c"
+
+diff --git a/keyboards/claw44/keymaps/shooter/keymap.c b/keyboards/claw44/keymaps/shooter/keymap.c
+index 07cb581712..95fb3e7cf6 100644
+--- a/keyboards/claw44/keymaps/shooter/keymap.c
++++ b/keyboards/claw44/keymaps/shooter/keymap.c
+@@ -16,6 +16,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ #include QMK_KEYBOARD_H
+ #include <stdio.h>
+
++#include "lib/glcdfont.c"
++#include "layers.c"
++#include "font_block.h"
++
++#include "game/game.h"
++
++
+ // Each layer gets a name for readability, which is then used in the keymap matrix below.
+ // The underscores don't mean anything - you can have a layer called STUFF or any other name.
+ // Layer names don't all need to be of the same length, obviously, and you can also skip them
+@@ -28,6 +35,10 @@ enum layer_number {
+     _ADJUST,
+ };
+
++enum custom_keycodes {
++    GM_INV = SAFE_RANGE
++};
++
+ #define KC_L_SPC LT(_LOWER, KC_SPC)  // lower
+ #define KC_R_ENT LT(_RAISE, KC_ENT)  // raise
+ #define KC_G_JA LGUI_T(KC_LANG1)     // cmd or win
+@@ -54,7 +65,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
+     //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------|
+         KC_LPRN, KC_HASH, KC_DLR , KC_DQT , KC_QUOT, KC_TILD,     KC_LEFT, KC_DOWN,  KC_UP , KC_RGHT, KC_GRV , KC_RPRN,
+     //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------|
+-        _______, _______, _______, _______, KC_LCBR, KC_LBRC,     KC_RBRC, KC_RCBR, _______, _______, _______, _______,
++        _______, GM_INV , _______, _______, KC_LCBR, KC_LBRC,     KC_RBRC, KC_RCBR, _______, _______, _______, _______,
+     //`--------+--------+--------+--------+--------+--------/   \--------+--------+--------+--------+--------+--------'
+                           _______, _______, _______, _______,     _______, _______, _______, RESET
+     //                  `--------+--------+--------+--------'   `--------+--------+--------+--------'
+@@ -89,77 +100,99 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
+ void render_layer_state(void) {
+     switch (get_highest_layer(layer_state)) {
+         case _QWERTY:
+-            oled_write_ln_P(PSTR("Layer: Default"), false);
++            write_font_blocks(layer_char, 2, 5, 0x01, 0);
+             break;
+         case _RAISE:
+-            oled_write_ln_P(PSTR("Layer: Raise"), false);
++            write_font_blocks(layer_char, 2, 5, 0x06, 0);
+             break;
+         case _LOWER:
+-            oled_write_ln_P(PSTR("Layer: Lower"), false);
++            write_font_blocks(layer_char, 2, 5, 0x0b, 0);
+             break;
+         case _ADJUST:
+-            oled_write_ln_P(PSTR("Layer: Adjust"), false);
++            write_font_blocks(layer_char, 2, 5, 0x10, 0);
+             break;
+         default:
+-            oled_write_ln_P(PSTR("Layer: Undefined"), false);
++            write_font_blocks(layer_char, 2, 5, 0x15, 0);
+     }
+ }
+
+ void render_logo(void) {
+-    static const char PROGMEM logo[] = {0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x8b, 0x8c, 0x8d, 0x8e, 0x8f, 0x90, 0x91, 0x92, 0x93, 0x94, 0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf, 0xb0, 0xb1, 0xb2, 0xb3, 0xb4, 0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce, 0xcf, 0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0};
+-    oled_write_P(logo, false);
+-}
+-
+-char keylog_str[24]  = {};
+-char keylogs_str[21] = {};
+-int  keylogs_str_idx = 0;
+-
+-const char code_to_name[60] = {' ', ' ', ' ', ' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'R', 'E', 'B', 'T', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ';', '\'', ' ', ',', '.', '/', ' ', ' ', ' '};
+-
+-void set_keylog(uint16_t keycode, keyrecord_t *record) {
+-    char name = ' ';
+-    if (keycode < 60) {
+-        name = code_to_name[keycode];
+-    }
+-
+-    // update keylog
+-    snprintf(keylog_str, sizeof(keylog_str), "%dx%d, k%2d : %c", record->event.key.row, record->event.key.col, keycode, name);
+-
+-    // update keylogs
+-    if (keylogs_str_idx == sizeof(keylogs_str) - 1) {
+-        keylogs_str_idx = 0;
+-        for (int i = 0; i < sizeof(keylogs_str) - 1; i++) {
+-            keylogs_str[i] = ' ';
+-        }
+-    }
+-
+-    keylogs_str[keylogs_str_idx] = name;
+-    keylogs_str_idx++;
++    set_rotation(0); // horizontal (logo display)
++    write_font_blocks(font, 3, 21, 0x80, 0); // official claw44 logo
+ }
+
+-const char *read_keylog(void) { return keylog_str; }
+-const char *read_keylogs(void) { return keylogs_str; }
+-
+ void oled_task_user(void) {
+     if (is_keyboard_master()) {
+-        render_layer_state();
+-        oled_write_ln(read_keylog(), false);
+-        oled_write_ln(read_keylogs(), false);
++        if (!isGamingMode()) {
++            render_layer_state();
++        }
+     } else {
+         render_logo();
+     }
+ }
+
++void matrix_scan_user(void) {
++    if (isGamingMode()) {
++        if (countMainTimer() > 0) {
++            game_main();
++        }
++    }
++}
++
+ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+-    if (record->event.pressed) {
+-        set_keylog(keycode, record);
++    switch (keycode) {
++        case GM_INV:
++            // Toggle gaming mode & clear OLED display
++            if (!record->event.pressed) {
++                toggleGamingMode();
++                if (isGamingMode()) {
++                    readMainTimer();
++                    initGame();
++                    startGame();
++                }
++                clear_display();
++            }
++            break;
++        case KC_LEFT:
++            if (record->event.pressed) {
++                if (isGamingMode()) {
++                    movePlayer(1); // 1 = isLeft
++                    return false;
++                }
++            }
++            break;
++        case KC_RIGHT:
++            if (record->event.pressed) {
++                if (isGamingMode()) {
++                    movePlayer(0); // 0 = isRight
++                    return false;
++                }
++            }
++            break;
++        case KC_SPC:
++        case KC_L_SPC:
++            if (record->event.pressed) {
++                if (isGamingMode()) {
++                    firePlayerBeam();
++                    return false;
++                }
++            }
++            break;
++        case KC_ENT:
++            if (record->event.pressed) {
++                if (isGamingMode()) {
++                    return false;
++                }
++            }
++            break;
+     }
+     return true;
+ }
+
+ oled_rotation_t oled_init_user(oled_rotation_t rotation) {
+     if (!is_keyboard_master()) return OLED_ROTATION_180;
+-    return rotation;
++    set_rotation(1); // vertical (main display)
++    return OLED_ROTATION_270;
+ }
+
+ #endif
+
+diff --git a/keyboards/claw44/keymaps/shooter/rules.mk b/keyboards/claw44/keymaps/shooter/rules.mk
+index d34d066ded..6bc8d0dfba 100644
+--- a/keyboards/claw44/keymaps/shooter/rules.mk
++++ b/keyboards/claw44/keymaps/shooter/rules.mk
+@@ -1,2 +1,13 @@
+ OLED_ENABLE = yes
+ OLED_DRIVER = SSD1306
++OLED_GAMING = yes
++LTO_ENABLE = yes
++
++ifeq ($(strip $(OLED_ENABLE)), yes)
++  SRC += font_block.c
++endif
++
++ifeq ($(strip $(OLED_GAMING)), yes)
++  SRC += game/game.c
++  SRC += game/drawing.c
++  SRC += game/rndgen.c
++endif
