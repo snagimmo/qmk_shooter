@@ -1,6 +1,6 @@
 # About this
 
-A simple shooter game like Space Invaders running on QMK firmware.
+A simple shooter game like Space Invaders that runs on QMK firmware.
 
 This program made simple animations possible by drawing different fonts in each 8x6 pixel field on every frame, which results in the smooth movement of beams and characters.
 

@@ -1,6 +1,6 @@
 # About
 
-A simple shooter game like Space Invaders running on **QMK Firmware**.
+A simple shooter game like Space Invaders that runs on **QMK Firmware**.
 
 
 # What is it like?
