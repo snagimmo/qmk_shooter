@@ -25,3 +25,9 @@ A simple shooter game like Space Invaders that runs on **QMK Firmware**.
 2. Other keyboard users
 - English: [ guide_other_en.md ](docs/guide_other_en.md)
 - Japanese: [ guide_other_jp.md ](docs/guide_other_jp.md)
+
+
+# How to draw with OLED fonts
+
+- English: [ oled_fonts_en.md ](docs/oled_fonts_en.md)
+- Japanese: [ oled_fonts_jp.md ](docs/oled_fonts_jp.md)

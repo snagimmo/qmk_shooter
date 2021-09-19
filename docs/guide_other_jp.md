@@ -6,7 +6,7 @@ Claw44以外のキーボードでこのゲームを動かす為の説明です�
 
 まだの方は[こちら](https://docs.qmk.fm/#/ja/newbs_getting_started)を読みながら QMK Firmware 等のセットアップをして下さい。
 
-また、お使いの環境で上手く動作しない場合は、お手数ですが **自分で書き直してリファクタリング** してください。
+また、お使いの環境で上手く動作しない場合は、お手数ですが **手動で修正** してください。
 
 **注意:**
 
@@ -24,7 +24,7 @@ Claw44以外のキーボードでこのゲームを動かす為の説明です�
 - `qmk_shooter/font_block.h`
     - 今回の説明では`git clone`でリポジトリごとクローンしますが、最終的にはリポジトリ内で上記3つのファイル/ディレクトリのみ残していれば動作します。
 
-1. また、以下のファイルをコピーした上で書き換えたり、上書きしたりする必要があります。
+2. また、以下のファイルをコピーした上で書き換えたり、上書きしたりする必要があります。
 
 - `YOUR_KEYBOARD/keymaps/YOUR_KEYMAP/keymap.c`
 - `YOUR_KEYBOARD/keymaps/YOUR_KEYMAP/rules.mk`
@@ -35,7 +35,7 @@ Claw44以外のキーボードでこのゲームを動かす為の説明です�
 
 # ファイル書き換えによる導入方法
 
-Claw44以外のキーボードを使っている場合や、自分でキーマップを書き換えたり上書きしたりしたい場合は、以下の説明に従って導入して下さい。
+Claw44以外のキーボードを使っている場合や、ご自身でキーマップを書き換えたり上書きしたりしたい場合には、以下の説明に従い導入して下さい。
 
 少々説明が長いかもしれませんが、ご容赦ください。
 
@@ -81,13 +81,13 @@ cp -rvf ./YOUR_KEYMAP/* ./shooter
 
 **注意:**
 
-`diff.patch` はディレクトリには絶対に適用しないでください。Claw44ユーザ用のパッチファイルです。
+`diff.patch` は `shooter` ディレクトリに適用しないでください。Claw44ユーザ用のパッチファイルです。
 
 ---
 
 ## 1-3. 準備完了
 
-この時点で、`qmk_firmware/keyboards/YOUR_KEYBOARD` ディレクトリは、以下のような構造になっているはずです。
+この時点で、`qmk_firmware/keyboards/YOUR_KEYBOARD` ディレクトリは以下のような構造になっているはずです。
 
 ```bash
 YOUR_KEYBOARD
@@ -119,6 +119,7 @@ YOUR_KEYBOARD
 # いくつかのファイル/ディレクトリ省略
 └── rules.mk
 ```
+
 
 ## 2. keymap.cの修正
 
@@ -248,7 +249,7 @@ YOUR_KEYBOARD
 
 ただし、それぞれ呼び出されている関数の名前を変更しないようにして下さい。
 
-また、これらの`case`文と同じものが既に `process_record_user()` 内に存在する場合は、自分で書き直さなければならないかもしれません。
+また、これらの`case`文と同じものが既に `process_record_user()` 内に存在する場合は改めて書き直して頂く必要があるかもしれません。
 
 ---
 
@@ -265,7 +266,7 @@ YOUR_KEYBOARD
 -        oled_write_ln(read_keylog(), false);
 -        oled_write_ln(read_keylogs(), false);
 +        if (!isGamingMode()) {
-+            render_layer_state();
++            /* render_layer_state(); */
 +        }
      } else {
          render_logo();
@@ -292,7 +293,7 @@ YOUR_KEYBOARD
 
 これら2つの`xxx_user()`関数とモードチェッカーによって、`game_main()`関数はループし続けます。
 
-もしもこれらの関数の中に重要な処理が既に存在している場合は、**ご自分で** 修正をお願いいたします。
+もしもこれらの関数の中に重要な処理が既に存在している場合は、お手数ですが手動修正をお願いいたします。
 
 ---
 
@@ -309,6 +310,8 @@ YOUR_KEYBOARD
  }
 ```
 
+特に分離式キーボードを使用していて、かつ「非マスター」側のOLEDスクリーンがキーボードのロゴを横に表示しているようなケースでは、こうする必要があるかも知れません。
+
 ---
 
 ### 2-7. 表示関連の関数を全て停止する
@@ -319,7 +322,7 @@ YOUR_KEYBOARD
 
 私のソースコードはデフォルトとは全く異なる描画方法を採用していますので、そうしないと機能しません。
 
-上手くいかない場合、ソースコード全体を **自分で** 書き直したり、リファクタリングしたりしてください(お手数ですが)。
+上手くいかない場合、ソースコード全体を **手動で** 書き直してください(お手数をお掛けします)。
 
 ---
 
@@ -334,6 +337,66 @@ YOUR_KEYBOARD
 キャラクターやビームのピクセルアート風アニメーションを実装したいと強く思っていた事もあり、`xxx_ln()`や`xxx_P()`関数は採用しませんでした。
 
 他に良い方法があるのかも知れませんが、ひとまず暫定的なものとして採用しています。
+
+---
+
+### 関数 `render_layer_state()` を呼び出すには
+
+先程コメントアウトしていた関数 `render_layer_state()` を正しく呼び出したい場合、以下の通りに `keymap.c` を修正して下さい。
+
+まず、 `layers.c` を追加でインクルードします。
+
+```diff
+@@ -16,6 +16,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ #include QMK_KEYBOARD_H
+ #include <stdio.h>
+
++#include "layers.c"
+ #include "font_block.h"
+ #include "game/game.h"
+```
+
+そして、関数を次のように実装します。
+
+```diff
++void render_layer_state(void) {
++    switch (get_highest_layer(layer_state)) {
++        case _QWERTY:
++            write_font_blocks(layer_char, 2, 5, 0x01, 0);
++            break;
++        case _RAISE:
++            write_font_blocks(layer_char, 2, 5, 0x06, 0);
++            break;
++        case _LOWER:
++            write_font_blocks(layer_char, 2, 5, 0x0b, 0);
++            break;
++        case _ADJUST:
++            write_font_blocks(layer_char, 2, 5, 0x10, 0);
++            break;
++        default:
++            write_font_blocks(layer_char, 2, 5, 0x15, 0);
++    }
++}
+```
+
+最後に、この関数を呼び出す行をアンコメントします。
+
+```diff
+ void oled_task_user(void) {
+     if (is_keyboard_master()) {
+         if (!isGamingMode()) {
+-            /* render_layer_state(); */
++            render_layer_state();
+         }
+     } else {
+         render_logo();
+     }
+ }
+```
+
+その後、コード全体が正しいことを確認して下さい。
+
+なお、`write_font_blocks()`がどのように動作するかについては、[docs/oled_fonts_jp.md](https://github.com/snagimmo/qmk_shooter/blob/main/docs/oled_fonts_jp.md) に書いてありますのでそちらをご覧下さい。
 
 
 ---
@@ -364,13 +427,7 @@ YOUR_KEYBOARD
 +endif
 ```
 
-何度も言いますが、うまくいかない場合は自分で書き換える必要があるかもしれません。
-
-**注意:**
-
-QMKファームウェアがVer 0.13以前の場合、`OLED_DRIVER_ENABLE` マクロが存在する可能性があります。
-
-その場合は、(念のため)QMKファームウェアとQMK CLIのバックアップ完了後、それぞれアップデートしてください。
+繰り返しになってしまいますが、上手くいかない場合は改めて書き換えて頂く必要があるかもしれません。
 
 **注意:**
 
@@ -421,7 +478,7 @@ make YOUR_KEYBOARD:shooter:avrdude
 
 ```bash
 # ProMicro用のビルドとフラッシュ
-qmk Flash -kb YOUR_KEYBOARD -km shooter
+qmk flash -kb YOUR_KEYBOARD -km shooter
 
 # Elite-C用のビルドとフラッシュ(未検証)
 qmk flash -kb YOUR_KEYBOARD -km shooter -bl dfu

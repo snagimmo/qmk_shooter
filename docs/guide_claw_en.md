@@ -6,7 +6,7 @@ These instructions assume that you've already installed [QMK Firmware](https://g
 
 If you haven't already done so, please read [here](https://docs.qmk.fm/#/ja/newbs_getting_started) and set up QMK Firmware, etc.
 
-If these settings don't work in your environment, please **rewrite & refactor it yourself**.
+If these settings don't work in your environment, please **rewrite it yourself**.
 
 **NOTE:**
 
@@ -17,11 +17,11 @@ I'm **NOT** responsible for any mistakes, problems, failures, or troubles.
 
 # Overview
 
-There's two setup ways to play this game. The one is easy, the other is a litte annoying.
+There's two setup ways to play this game. One is easy, and the other is a hassle.
 
-If you are a Claw44's user, all you have to do is to apply a patch to your local `qmk_firmware` directory.
+If you are a Claw44's user, all you have to do is to apply a patch to your local directory.
 
-However, if you want to rewrite/overwrite your `keymap.c`, see `qmk_shooter/docs/guide_other_en.md`.
+However, if you want to rewrite/overwrite your `keymap.c`, see [docs/guide_other_en.md](https://github.com/snagimmo/qmk_shooter/blob/main/docs/guide_other_en.md).
 
 
 # Easy Setup
@@ -69,7 +69,7 @@ patch -p5 < diff.patch
 
 ## 4. Finished
 
-After the setup, your `qmk_firmware/keyboards/claw44` directory shows a structure like below.
+Now, your `qmk_firmware/keyboards/claw44` directory should look like a structure as follows:
 
 ```bash
 ./keyboards/claw44/
@@ -152,4 +152,4 @@ Now you can press the `GM_INV` key on the 2nd layer ("Z" key on `_RAISE`) that t
 
 # Manual Setup
 
-If you've failed/mistaken in the setup above or want to rewrite/overwrite keymaps, please follow the instruction with `qmk_shooter/docs/guide_other_en.md`.
+If you've failed/mistaken in the setup above or want to rewrite/overwrite keymaps, please follow the instruction with [docs/guide_other_en.md](https://github.com/snagimmo/qmk_shooter/blob/main/docs/guide_other_en.md).

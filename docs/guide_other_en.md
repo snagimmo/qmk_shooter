@@ -6,7 +6,7 @@ These instructions assume that you've already installed [QMK Firmware](https://g
 
 If you haven't already done so, please read [here](https://docs.qmk.fm/#/ja/newbs_getting_started) and set up QMK Firmware, etc.
 
-If these settings don't work in your environment, please **rewrite & refactor it yourself**.
+If these settings don't work in your environment, please **rewrite it yourself**.
 
 **NOTE:**
 
@@ -87,7 +87,7 @@ Never apply `diff.patch` to your directory in this case. That's the file only fo
 
 ## 1-3. Preparation is done
 
-At this time, your `qmk_firmware/keyboards/YOUR_KEYBOARD` directory should look like the structure below.
+Now, your `qmk_firmware/keyboards/YOUR_KEYBOARD` directory should look like a structure as follows:
 
 ```bash
 YOUR_KEYBOARD
@@ -159,7 +159,9 @@ Next, you have to add the `GM_INV` keycode to `enum` object.
 
 The `SAFE_RANGE` macro is recommended here so that keycodes don't interfere with each other.
 
-For more detail, see the docs: [Customizing Functionality](https://docs.qmk.fm/#/custom_quantum_functions?id=defining-a-new-keycode)
+For more detail, see the docs:
+
+- [Customizing Functionality](https://docs.qmk.fm/#/custom_quantum_functions?id=defining-a-new-keycode)
 
 ---
 
@@ -264,7 +266,7 @@ It's the **CORE** of gaming processing.
 -        oled_write_ln(read_keylog(), false);
 -        oled_write_ln(read_keylogs(), false);
 +        if (!isGamingMode()) {
-+            render_layer_state();
++            /* render_layer_state(); */
 +        }
      } else {
          render_logo();
@@ -291,7 +293,7 @@ In the example above,
 
 These two `xxx_user()` functions and the mode checker make `game_main()` function keep on looping.
 
-If there are already unavoidable processes inside these functions, please rewrite & refactor them **yourself**.
+If there are already unavoidable processes inside these functions, please rewrite them **yourself**.
 
 ---
 
@@ -308,6 +310,8 @@ If you need, modify the `oled_init_user()` function to make your keyboard's disp
  }
 ```
 
+In the case you use a split keyboard and OLED screen on "non-master" side of it displays the keyboard's logo horizontally, you may have to do this.
+
 ---
 
 ### 2-7. Stopping all the displaying-related functions
@@ -318,7 +322,7 @@ If your keyboard's `keymap.c` has functions drawing pixels on OLED display, you 
 
 My source codes adopt a very different way of drawing than the default, so you have to do that.
 
-If it doesn't work, please rewrite & refactor the whole source code **on yourself** (sorry for inconvenience).
+If it doesn't work, please rewrite the whole source code **on yourself** (sorry for inconvenience).
 
 ---
 
@@ -332,8 +336,67 @@ My codes do writing to buffers **per one byte**, and this make it easier to draw
 
 I strongly wanted to implement pixel art animation of the characters/beams, that's why I didn't adopt `xxx_ln()` or `xxx_P()` functions.
 
-Perhaps there may be another way to do that, and this is a preliminary one.
+Perhaps there may be another way, and it's only tentative.
 
+---
+
+### How to call the function `render_layer_state()`
+
+If you want to call the function `render_layer_state()` properly, please follow these instructions.
+
+First, include `layers.c` additionally as follows:
+
+```diff
+@@ -16,6 +16,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ #include QMK_KEYBOARD_H
+ #include <stdio.h>
+
++#include "layers.c"
+ #include "font_block.h"
+ #include "game/game.h"
+```
+
+And then implement the function like:
+
+```diff
++void render_layer_state(void) {
++    switch (get_highest_layer(layer_state)) {
++        case _QWERTY:
++            write_font_blocks(layer_char, 2, 5, 0x01, 0);
++            break;
++        case _RAISE:
++            write_font_blocks(layer_char, 2, 5, 0x06, 0);
++            break;
++        case _LOWER:
++            write_font_blocks(layer_char, 2, 5, 0x0b, 0);
++            break;
++        case _ADJUST:
++            write_font_blocks(layer_char, 2, 5, 0x10, 0);
++            break;
++        default:
++            write_font_blocks(layer_char, 2, 5, 0x15, 0);
++    }
++}
+```
+
+In the end, uncomment a line calling this function:
+
+```diff
+ void oled_task_user(void) {
+     if (is_keyboard_master()) {
+         if (!isGamingMode()) {
+-            /* render_layer_state(); */
++            render_layer_state();
+         }
+     } else {
+         render_logo();
+     }
+ }
+```
+
+After that, please make sure the whole code is correct.
+
+By the way, a description about how `write_font_blocks()` works is on [docs/oled_fonts_en.md](https://github.com/snagimmo/qmk_shooter/blob/main/docs/oled_fonts_en.md).
 
 ---
 
@@ -364,12 +427,6 @@ Without this section, your QMK's build task won't be completed.
 ```
 
 As I've mentioned repeatedly, you may have to rewrite them yourself if it doesn't work.
-
-**NOTE:**
-
-There may be `OLED_DRIVER_ENABLE` macro if your QMK Firmware is still ver 0.13 or earlier.
-
-If so, please update your QMK Firmware & QMK-CLI after their backup is done.
 
 **NOTE:**
 

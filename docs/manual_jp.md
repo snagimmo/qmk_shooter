@@ -31,62 +31,30 @@ QMKファームウェア上で動作するスペースインベーダーに似�
 
 1. Claw44ユーザー
 - `qmk_firmware` ディレクトリにある `diff.patch` を適用するだけでOKです。
-- 詳しくは `qmk_shooter/docs/guide_claw_jp.md` をご覧ください。
+- 詳しくは [docs/guide_claw_jp.md](https://github.com/snagimmo/qmk_shooter/blob/main/docs/guide_claw_jp.md) をご覧ください。
 
 2. 他のキーボードユーザー
 - お手数ですが、いくつかのファイルを手動で修正する必要があります。
-- 詳しくは `qmk_shooter/docs/guide_other_jp.md` をご覧ください。
+- 詳しくは [docs/guide_other_jp.md](https://github.com/snagimmo/qmk_shooter/blob/main/docs/guide_other_jp.md) をご覧ください。
 
 
 # 遊び方
 
 キーを押すことで、プレイヤーキャラクターを操作することができます。
 
-- `KC_LEFT` (左矢印キー)。プレイヤーを左に移動させます。
-- `KC_RGHT` (右矢印キー)：プレイヤーを左に移動します。プレイヤーを右方向に移動
-- `KC_SPC` (スペースキー)：プレイヤーを左に移動する。ビームを発射する
-    - 発射回数はデフォルトでは **3回** までです。
+- `KC_LEFT` (左矢印キー): プレイヤーを左に移動させます。
+- `KC_RGHT` (右矢印キー): プレイヤーを右に移動させます。
+- `KC_SPC` (スペースキー): ビームを発射します。
+    - ビームの発射弾数はデフォルトで **同時に3発** までです。
 - `GM_INV` (独自キー): ゲームの開始/終了
 
-注：`KC_` というのは、QMKファームウェアがユーザーによって押されたキーを認識するためのキーコード用の接頭辞です。
+**注意:** `KC_` というのは、QMKファームウェアがユーザーによって押されたキーを認識するためのキーコード用の接頭辞です。
 
 `GM_INV` という独自キーでゲームモードのON/OFFをトグルすることができます。ゲームモードがONの間はEnter(`KC_ENT`)キーとWindows(`KC_LGUI`)キーを押しても反応しないようになっています。
 
-これとは別のキーバインディングを使いたい場合は、QMKファームウェアでお好きなキーコードを設定することもできます。
+これとは別に自分用のキーバインディングなどを使いたい場合は、QMKファームウェアでお好きなキーコードを設定することもできます。
 
 全ての敵を倒せばゲームクリアです。尚、いくつかのステージといくつかの敵が登場します。
-
-
-# 見た目の変更
-
-OLED上で表示されるグラフィカルなフォントは、`game/invader.c` 内に16進数の配列として実装されています。
-
-```c
-const unsigned char invader_font[] PROGMEM { 0x00, ...};
-```
-
-このグラフィカルフォント(配列)は以下のツールで改造することができます。
-
-- [helix/FontConverter at master - MakotoKurauchi/helix](https://github.com/MakotoKurauchi/helix/tree/master/FontConverter)
-
-このツールを使うと、ビットマップ画像(`.bmp`)を16進数の配列に変換することができます(その逆も可)。標準出力に対して出力結果が渡されるので、中間ファイルとして`.txt`などにしておくのがオススメです。
-
-その後、別途用意した `YOUR_FONTFILE.c` 内の16進数配列 `THIS_IS_FONTNAME[]` をさきほど出力した16進数配列で置き換えることにより、独自のグラフィカルフォント(Helix系)を作ることが出来ます。
-
-```c
-const unsigned char THIS_IS_FONTNAME[] PROGMEM {
-    // ここを出力結果で置き換える
-    0x00, 0x80, 0xE0, ...
-};
-```
-
-このプログラムで読み込んでいるフォント配列 `layer_char[]` や `invader_font[]` は主に `keymap.c` や `drawing.c` の `write_font_blocks()` 関数の中で呼び出されます。コード中の配列名を変更する場合にはお手数ですが自力で書き換えて下さい。
-
-参考用画像として `qmk_shooter/images` 内にいくつかビットマップ画像を置いておいたので、そちらをコピーしてペイントソフト等で編集後、上記ツールで変換してみて下さい。
-
-また、特にQMKファームウェアのバージョンが0.14以上の場合、ファームウェアのサイズをあまり大きくしないように注意してください。
-
-詳しくは、公式ドキュメント([QMK Firmware Docs](https://github.com/qmk/qmk_firmware))をご覧ください。
 
 
 # 謝辞

@@ -6,9 +6,9 @@
 
 まだの方は[こちら](https://docs.qmk.fm/#/ja/newbs_getting_started)を読みながら QMK Firmware 等のセットアップをして下さい。
 
-また、お使いの環境で上手く動作しない場合は、お手数ですが **自分で書き直してリファクタリング** してください。
+また、お使いの環境で上手く動作しない場合は、お手数ですが **手動で修正** してください。
 
-**注意：**
+**注意:**
 
 書き換えあるいは上書きする前に、全てのファイルを **必ず** バックアップしてください。
 
@@ -19,9 +19,9 @@
 
 このゲームを遊ぶには2つの導入方法があります。1つは簡単で、もう1つは少々面倒です。
 
-Claw44のユーザーであれば、ローカルの `qmk_firmware` ディレクトリにパッチを適用するだけで済みます。
+Claw44のユーザーであれば、指定されたディレクトリにパッチを適用するだけで済みます。
 
-ただし、`keymap.c` をご自分で書き換えたい場合(既にあるキーマップを残しつつゲーム機能のみを追加したい場合など)には、別添の`qmk_shooter/docs/guide_other_jp.md` を参照してください。
+ただし、`keymap.c` をご自身で書き換えたい場合(既にあるキーマップを残しつつゲーム機能のみを追加したい場合)などには、別添の[docs/guide_other_jp.md](https://github.com/snagimmo/qmk_shooter/blob/main/docs/guide_other_jp.md)をご覧下さい。
 
 
 # 簡単な導入方法
@@ -30,7 +30,7 @@ Claw44のユーザーであれば、ローカルの `qmk_firmware` ディレク�
 
 ---
 
-## 1. このレポをクローンする
+## 1. リポジトリをクローンする
 
 まず、`qmk_firmware/keyboards/claw44/keymaps` ディレクトリに移動します。
 
@@ -135,7 +135,7 @@ make claw44:shooter:avrdude
 
 ```bash
 # ProMicro用のビルドとフラッシュ
-qmk Flash -kb claw44 -km shooter
+qmk flash -kb claw44 -km shooter
 
 # Elite-C用のビルドとフラッシュ(未検証)
 qmk flash -kb claw44 -km shooter -bl dfu
@@ -162,4 +162,4 @@ WindowsまたはMacOSでは、[**QMK Toolbox**](https://docs.qmk.fm/#/ja/newbs_f
 
 # ファイル書き換えによる導入方法
 
-上記のパッチ当てに失敗してしまった方や、ご自身でキーマップを書き換え/上書きしたい方は、別添の `qmk_shooter/docs/guide_other_jp.md` をご覧下さい。
+上記のパッチ当てに失敗してしまった方や、ご自身でキーマップを書き換え/上書きしたい方は、別添の [docs/guide_other_jp.md](https://github.com/snagimmo/qmk_shooter/blob/main/docs/guide_other_jp.md) をご覧下さい。
