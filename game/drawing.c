@@ -112,6 +112,7 @@ void ejectCharacter(Character *character, uint16_t *pTimer) {
     if (!character->isAlive && !character->isAnimating) {
         character->pos.x = -3;
         character->pos.y = -3;
+        character->isEjected = 1;
         *(character->num) -= 1; // Subtract 1 from the number of the alive characters
         *pTimer = *(character->num) == 0 // Check whether all characters are destroyed
                 ? timer_read() // If so, reset main_timer
@@ -149,15 +150,12 @@ void calcBeamWIdx(Beam *beam) {
 }
 
 void setBeamRIdx(const Character *character, Beam *beam) {
-    uint8_t max_beams = *(beam->max);
-    uint8_t num_beams = *(beam->num);
-
     // Exit if the number of beams reaches its max
-    if (max_beams <= num_beams) {
+    if (*(beam->max) <= *(beam->num)) {
         return;
     }
 
-    for (int i = 0; i < max_beams; i++) {
+    for (int i = 0; i < *(beam->max); i++) {
         // Search for the beam that has yet to be fired
         if ((beam + i)->isFired) {
             continue;
@@ -185,11 +183,8 @@ void setBeamRIdx(const Character *character, Beam *beam) {
 }
 
 void fireBeam(Character *character, Beam *beam) {
-    uint8_t max_beams = *(beam->max);
-    uint8_t *num_beams = beam->num;
-
     // Exit if the number of beams reaches its max
-    if (max_beams <= *num_beams) {
+    if (*(beam->max) <= *(beam->num)) {
         return;
     }
 
@@ -198,14 +193,14 @@ void fireBeam(Character *character, Beam *beam) {
                 ? character->pos.y - 2   // Player
                 : character->pos.y + 1); // Enemy
 
-    for (int i = 0; i < max_beams; i++) {
+    for (int i = 0; i < *(beam->max); i++) {
         // Search for the beam that has yet to be fired
         if (!(beam + i)->isFired) {
             (beam + i)->isFired = 1;
             (beam + i)->pos.x = character->pos.x;
             (beam + i)->pos.y = pos_y;
             (beam + i)->timer = timer_read();
-            (*num_beams)++;
+            *(beam->num) += 1;
             character->isFiring = 1;
             calcBeamWIdx(beam + i);
             return; // Exit once the unfired beam is found
@@ -232,7 +227,7 @@ void moveBeam(Beam *beam){
 
 void drawBeam(const Beam *beam) {
     if (beam->isFired) {
-        if (beam->pos.x < 0) {
+        if (beam->fromPlayer && beam->pos.x < 0) {
             write_font_blocks(invader_font, 2, 1, beam->rIdx + 4, beam->wIdx + 1);
         } else {
             write_font_blocks(invader_font, 2, 1, beam->rIdx, beam->wIdx);
@@ -267,7 +262,6 @@ void updateCharAnim(Character *character, uint8_t num_frame) {
             character->timer = timer_read();
             character->rIdx = character->dead_rIdx;
         }
-
     // If the loop reaches specified frame, stop it and reset some variables.
     } else if (character->rIdx >= character->dead_rIdx + (num_frame - 1) * 2) {
         // Stop the animation here
@@ -275,7 +269,6 @@ void updateCharAnim(Character *character, uint8_t num_frame) {
         character->wasAnimated = 1;
         character->timer = 0;
         character->rIdx = character->org_rIdx;
-
     // Move read-index every 1 frame
     } else if (timer_elapsed(character->timer) % ANIME_INTERVAL == 0) {
         character->rIdx += 2; // 1 character has 2 blocks
@@ -294,11 +287,13 @@ void updateBeamAnim(Beam *beam) {
         beam->timer = timer_read();
         beam->rIdx = beam->org_rIdx;
         clearBeam(beam);
+        /* clear_display(); */
         drawBeam(beam);
     // Draw animated beams
     } else {
         beam->rIdx++; // Go on to the next frame
         clearBeam(beam);
+        /* clear_display(); */
         drawBeam(beam);
     }
 }

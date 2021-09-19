@@ -22,7 +22,7 @@ static uint8_t num_enemies = MAX_NUM_ENEMY; // 12
 
 static Beam player_beams[MAX_PLAYER_BEAMS];
 static uint8_t num_player_beams = 0;
-static uint8_t max_player_beams = MAX_PLAYER_BEAMS;
+static uint8_t max_player_beams = MAX_PLAYER_BEAMS; // 3
 static Beam enemy_beams[MAX_ENEMY_BEAMS];
 static uint8_t num_enemy_beams = 0;
 static uint8_t max_enemy_beams = MAX_ENEMY_BEAMS; // 5
@@ -190,6 +190,7 @@ void initBeam(Beam *beam) {
     } else { // Enemy's beam
         beam->num = &num_enemy_beams;
         beam->max = &max_enemy_beams;
+        // We'll update this rIdx within setBeamRIdx() when an enemy fires a beam
         beam->rIdx = BEAM_E1_R_IDX;
     }
     beam->org_rIdx = beam->rIdx;
@@ -261,7 +262,6 @@ void initGame(void) {
             break;
     }
     for (int i = 0; i < max_enemy_beams; i++) {
-        // We'll update rIdx within setBeamRIdx() when an enemy fires a beam
         (enemy_beams + i)->fromPlayer = 0;
         initBeam(enemy_beams + i);
     }
@@ -277,32 +277,27 @@ void initGame(void) {
 **************************************************************************/
 void game_main(void) {
     // Game-starting block
-    if (game_event == GAME_START && timer_elapsed(main_timer) > 1500) {
+    if (game_event == GAME_START && countMainTimer() > 1500) {
         game_event = NEXT_STAGE;
         main_timer = timer_read();
     }
 
     // Stage-setting block
-    if (game_event == STAGE_CLEAR && timer_elapsed(main_timer) > 2000) {
+    if (game_event == STAGE_CLEAR && countMainTimer() > 2000) {
         current_stage++;
         game_event = NEXT_STAGE;
         main_timer = timer_read();
     }
 
     // Stage-displaying block
-    if (game_event == NEXT_STAGE && timer_elapsed(main_timer) > 1500) {
+    if (game_event == NEXT_STAGE && countMainTimer() > 1500) {
         game_event = NONE;
         main_timer = timer_read();
         initGame(); // Go on to next stage
     }
 
-    // Check whether player is dead to draw animation
-    if (game_event == NONE && !player->isAlive) {
-        game_event = SOMETHING;
-    }
-
     // Clear-judging block
-    if (game_event == NONE && num_enemies == 0 && 300 < timer_elapsed(main_timer)) {
+    if (game_event == NONE && num_enemies == 0 && countMainTimer() > 300) {
         game_event = (current_stage == STAGE_EXTRA ? GAME_CLEAR : STAGE_CLEAR);
         main_timer = timer_read();
     }
@@ -314,7 +309,7 @@ void game_main(void) {
             drawDeadPlayerAnim(player, &game_event);
         // Events-displaying block
         } else {
-            if (timer_elapsed(main_timer) % EVENT_INTERVAL == 0) {
+            if (countMainTimer() % EVENT_INTERVAL == 0) {
                 clear_display();
                 updateScreen();
             }
@@ -324,7 +319,7 @@ void game_main(void) {
     }
 
     // Hit-detection block
-    if (timer_elapsed(main_timer) % HIT_INTERVAL == 0) {
+    if (countMainTimer() % HIT_INTERVAL == 0) {
         // Player's hit detection
         for (int i = 0; i < max_enemy_beams; i++) {
             if (!(enemy_beams + i)->isFired) {
@@ -377,7 +372,7 @@ void game_main(void) {
     }
 
     // Enemy-moving block
-    if (timer_elapsed(main_timer) % ENEMY_INTERVAL == 0) {
+    if (countMainTimer() % ENEMY_INTERVAL == 0) {
         // Move all enemies per ENEMY_INTERVAL
         for (int i = 0; i < all_enemies; i++) {
             // The position of the enemy after it moves in their current direction
@@ -412,7 +407,7 @@ void game_main(void) {
     }
 
     // Enemy-firing block (that is called 2 times as frequently as firing clock)
-    if (timer_elapsed(main_timer) % (FIRE_INTERVAL / 2) == 0) {
+    if (countMainTimer() % (FIRE_INTERVAL / 2) == 0) {
         // Generate a random number with Xorshift
         int rnd_i = calc_rng(&rng, timer_read()) % all_enemies;
         // Enemies always shoot a beam from the nearest point to a player
@@ -426,7 +421,7 @@ void game_main(void) {
             (enemies + rnd_i)->isFiring = 0;
         }
         // The randomly chosen enemy fires every 350+ milliseconds
-        if (timer_elapsed(main_timer) % FIRE_INTERVAL == 0) {
+        if (countMainTimer() % FIRE_INTERVAL == 0) {
             if ((enemies + rnd_i)->isAlive && 350 <= timer_elapsed(beam_e_clock)) {
                 setBeamRIdx(enemies + rnd_i, enemy_beams);
                 fireBeam(enemies + rnd_i, enemy_beams);
@@ -444,14 +439,13 @@ void game_main(void) {
         updateCharAnim(enemies + i, 4);
         if ((enemies + i)->wasAnimated) {
             ejectCharacter(enemies + i, &main_timer);
-            (enemies + i)->isEjected = 1;
         } else {
             drawCharacter(enemies + i);
         }
     }
 
     // Beam-drawing block
-    if (timer_elapsed(main_timer) % (BEAM_INTERVAL / 3) == 0) {
+    if (countMainTimer() % (BEAM_INTERVAL / 3) == 0) {
         // Player's beam drawing block
         for (int i = 0; i < max_player_beams; i++) {
             updateBeamAnim(player_beams + i);
