@@ -2,8 +2,6 @@
 
 Here's a brief description about how to draw images/animations on OLED screen and how to change their appearances.
 
-**NOTE:** I'm currently rewriting source codes, so this is a tentative description. The content will be probably modified again.
-
 ---
 
 ## What's OLED fonts?
@@ -20,7 +18,28 @@ The terms such as "block", "row", and "column" are illustrated below:
 
 **NOTE:**
 
-The number of horizontal blocks of OLED font is actually **NOT** fixed to 32. It may be possible to change this number by rewriting `font_block.c` as follows:
+If you look at the OLED font `game/invader.c` as an example, you will see that it does not have any information about the columns and rows of the font, but just a one-dimensional array of numbers.
+
+In QMK's OLED rendering, this list of numbers is divided into **32 blocks** for convenience, so that the OLED font has **32 horizontal blocks**.
+
+However, the number of horizontal blocks of OLED font is **NOT** fixed to 32.
+
+You can change this number by modifying `font_block.c` as follows:
+
+```c
+void write_font_blocks(const unsigned char* p, uint8_t row, uint8_t col, uint8_t p_rIdx, uint8_t p_wIdx) {
+    // ...
+    for (int i = 0; i < row; i++) {
+        // ...
+        rIdx = p_rIdx + (i * 32); // You can change this number "32" to another number
+        // ...
+    }
+}
+```
+
+If you want to change the above number to something other than `32`, you will need to create your own OLED font image and `.c` file with a width corresponding to that number.
+
+For more details, please read the "Changing the appearance" section at the bottom of this document.
 
 ---
 
