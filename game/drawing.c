@@ -287,13 +287,11 @@ void updateBeamAnim(Beam *beam) {
         beam->timer = timer_read();
         beam->rIdx = beam->org_rIdx;
         clearBeam(beam);
-        /* clear_display(); */
         drawBeam(beam);
     // Draw animated beams
     } else {
         beam->rIdx++; // Go on to the next frame
         clearBeam(beam);
-        /* clear_display(); */
         drawBeam(beam);
     }
 }
@@ -316,13 +314,13 @@ void drawDeadPlayerAnim(Character *character, Event *game_event) {
 **************************************************************************/
 void drawEvent(uint8_t upper_rIdx, uint8_t lower_rIdx) {
     // Draw events using OLED fonts of 2 rows & 5 cols
-    write_font_blocks(invader_font, 2, 5, upper_rIdx, /* upper_wIdx */ 25);
-    write_font_blocks(invader_font, 2, 5, lower_rIdx, /* lower_wIdx */ 35);
+    write_font_blocks(invader_font, 2, 5, upper_rIdx, /* upper_wIdx = */ 25);
+    write_font_blocks(invader_font, 2, 5, lower_rIdx, /* lower_wIdx = */ 35);
 }
 
 void drawStage(uint8_t upper_rIdx, uint8_t lower_rIdx) {
     // Draw "Stage" using OLED fonts of 2 rows & 5 cols
-    write_font_blocks(invader_font, 2, 5, upper_rIdx, /* upper_wIdx */ 25);
+    write_font_blocks(invader_font, 2, 5, upper_rIdx, /* upper_wIdx = */ 25);
     // Draw stage-number using OLED fonts of 2 rows & 1 cols
-    write_font_blocks(invader_font, 2, 1, lower_rIdx, /* lower_wIdx */ 37);
+    write_font_blocks(invader_font, 2, 1, lower_rIdx, /* lower_wIdx = */ 37);
 }

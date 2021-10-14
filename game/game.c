@@ -108,7 +108,7 @@ void movePlayer(uint8_t isLeft) {
     }
 
     if (isLeft) {
-        if (0 <= player->pos.x) {
+        if (player->pos.x >= 0) {
             player->pos.x--;
             calcCharWIdx(player);
             moveCharacter(player);
@@ -279,27 +279,27 @@ void game_main(void) {
     // Game-starting block
     if (game_event == GAME_START && countMainTimer() > 1500) {
         game_event = NEXT_STAGE;
-        main_timer = timer_read();
+        readMainTimer();
     }
 
     // Stage-setting block
     if (game_event == STAGE_CLEAR && countMainTimer() > 2000) {
         current_stage++;
         game_event = NEXT_STAGE;
-        main_timer = timer_read();
+        readMainTimer();
     }
 
     // Stage-displaying block
     if (game_event == NEXT_STAGE && countMainTimer() > 1500) {
         game_event = NONE;
-        main_timer = timer_read();
+        readMainTimer();
         initGame(); // Go on to next stage
     }
 
     // Clear-judging block
     if (game_event == NONE && num_enemies == 0 && countMainTimer() > 300) {
         game_event = (current_stage == STAGE_EXTRA ? GAME_CLEAR : STAGE_CLEAR);
-        main_timer = timer_read();
+        readMainTimer();
     }
 
     // If some event happens
@@ -422,7 +422,7 @@ void game_main(void) {
         }
         // The randomly chosen enemy fires every 350+ milliseconds
         if (countMainTimer() % FIRE_INTERVAL == 0) {
-            if ((enemies + rnd_i)->isAlive && 350 <= timer_elapsed(beam_e_clock)) {
+            if ((enemies + rnd_i)->isAlive && timer_elapsed(beam_e_clock) >= 350) {
                 setBeamRIdx(enemies + rnd_i, enemy_beams);
                 fireBeam(enemies + rnd_i, enemy_beams);
                 beam_e_clock = timer_read();
